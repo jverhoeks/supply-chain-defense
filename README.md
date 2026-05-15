@@ -380,6 +380,8 @@ mvn dependency-check:check      # OWASP vulnerability scan
 
 > **`checksumPolicy` defaults to `warn`.** Most Maven setups never set this explicitly. A tampered artifact produces a warning in the build log and then installs. Set it to `fail`.
 
+> **Plugins are not the same threat as npm postinstall.** Maven plugins run during `mvn install`, but only those you explicitly declare in `pom.xml`. A transitive dependency cannot silently inject a plugin into your build — unlike npm's `postinstall`, which can be added by any package in your dependency tree without your knowledge.
+
 ---
 
 ### Java / Gradle
@@ -632,6 +634,12 @@ bash tests/test-dotnet.sh
 ---
 
 ## Things Most Teams Miss
+
+**Maven and Gradle plugins are not the same threat as npm postinstall.**
+A common assumption is that "Maven plugins run code, so Maven is as dangerous as npm." This is wrong in a meaningful way. npm's `postinstall` can be injected by any package in `node_modules` without explicit project consent. Maven and Gradle plugins only execute what you explicitly declare in `pom.xml` or `build.gradle` — a transitive dependency cannot silently add a plugin to your build. The threat model is: *your* build config runs code from plugins; those plugins are fetched from Maven Central. So you still need to vet the plugins you declare and use a proxy with `checksumPolicy=fail`, but the attack surface is narrower than npm.
+
+**Composer scripts run on install exactly like npm postinstall — but fewer teams know this.**
+`composer install` executes `post-install-cmd` and `pre-install-cmd` scripts from any package's `composer.json`. This is the same attack surface as npm's `postinstall` hook. Always run `composer install --no-scripts` in CI. Unlike npm, there is no persistent config key to disable scripts globally — it must be a flag on every invocation.
 
 **pnpm v11 moved build policy to `pnpm-workspace.yaml`.**
 Settings in `.npmrc` are silently ignored. Run `pnpm approve-builds` to populate the allowlist interactively. If you upgraded from v10 and kept `allowBuilds` in `.npmrc`, your build policy is doing nothing.
