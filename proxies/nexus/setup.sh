@@ -116,7 +116,7 @@ create_repo() {
 }
 
 # ---------------------------------------------------------------------------
-# 6-b. Create the five proxy repositories
+# 6-b. Create the six proxy repositories
 # ---------------------------------------------------------------------------
 echo "Creating proxy repositories ..."
 
@@ -135,13 +135,17 @@ create_repo maven2 maven-central \
 create_repo nuget nuget-proxy \
   '{"name":"nuget-proxy","online":true,"storage":{"blobStoreName":"default","strictContentTypeValidation":true},"proxy":{"remoteUrl":"https://api.nuget.org/v3/index.json","contentMaxAge":1440,"metadataMaxAge":1440},"negativeCache":{"enabled":true,"timeToLive":1440},"httpClient":{"blocked":false,"autoBlock":true},"nugetProxy":{"v3ServiceUrl":"https://api.nuget.org/v3/index.json","queryCacheItemMaxAge":3600,"nugetVersion":"V3"}}'
 
+create_repo composer composer-proxy \
+  '{"name":"composer-proxy","online":true,"storage":{"blobStoreName":"default","strictContentTypeValidation":true},"proxy":{"remoteUrl":"https://packagist.org","contentMaxAge":1440,"metadataMaxAge":1440},"negativeCache":{"enabled":true,"timeToLive":1440},"httpClient":{"blocked":false,"autoBlock":true}}'
+
 # ---------------------------------------------------------------------------
 # 7. Summary
 # ---------------------------------------------------------------------------
 echo ""
 echo "Nexus proxy repositories:"
-echo "  npm-proxy    : $NEXUS/repository/npm-proxy/"
-echo "  pypi-proxy   : $NEXUS/repository/pypi-proxy/simple/"
-echo "  go-proxy     : $NEXUS/repository/go-proxy/"
-echo "  maven-central: $NEXUS/repository/maven-central/"
-echo "  nuget-proxy  : $NEXUS/repository/nuget-proxy/index.json"
+echo "  npm-proxy      : $NEXUS/repository/npm-proxy/"
+echo "  pypi-proxy     : $NEXUS/repository/pypi-proxy/simple/"
+echo "  go-proxy       : $NEXUS/repository/go-proxy/"
+echo "  maven-central  : $NEXUS/repository/maven-central/"
+echo "  nuget-proxy    : $NEXUS/repository/nuget-proxy/index.json"
+echo "  composer-proxy : $NEXUS/repository/composer-proxy/"

@@ -1,3 +1,22 @@
+---
+title: "Supply Chain Attacks Hit Every Ecosystem. Here's How to Defend Yours."
+description: "Supply chain attacks on package registries are surging across npm, PyPI, Go, Maven, NuGet, and Cargo. Two controls block the majority: a quarantine window and disabled install scripts. Here's the exact config for every ecosystem, a one-command Nexus proxy, and shell tests you can run today."
+pubDate: "2026-05-14"
+author: "Jacob Verhoeks"
+tags:
+  - "security"
+  - "supply-chain"
+  - "npm"
+  - "python"
+  - "go"
+  - "java"
+  - "dotnet"
+  - "rust"
+  - "php"
+  - "package-manager"
+  - "devops"
+---
+
 # Supply Chain Attacks Hit Every Ecosystem. Here's How to Defend Yours.
 
 Supply chain attacks on package registries are no longer an npm problem. In March 2026, axios was compromised via a stolen maintainer token — two poisoned versions published, a cross-platform RAT phoning home within two seconds of `npm install`. The same attack pattern has hit PyPI, RubyGems, and Maven Central. The install step is the attack surface, and it exists in every language.
