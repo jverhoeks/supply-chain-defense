@@ -1,0 +1,24 @@
+# Supply chain protection for Bun (>= 1.3)
+# File location: project root (bunfig.toml) or ~/.bunfig.toml for user-global config.
+# Bun reads both; project file takes precedence.
+
+[install]
+# Minimum release age: blocks packages published less than N minutes ago.
+# 10080 = 7 days. Requires bun >= 1.3.
+minimumReleaseAge = 10080
+
+# Block all lifecycle scripts (preinstall, postinstall, prepare).
+# Prevents arbitrary code execution during bun install.
+# To allow specific packages: add to trustedDependencies in package.json.
+ignore-scripts = true
+
+# Enforce lockfile integrity: fail if bun.lock would need updating.
+# Use: bun install --frozen-lockfile  (recommended for CI)
+frozen-lockfile = false
+
+# Only use the official npm registry.
+registry = "https://registry.npmjs.org/"
+
+# Scoped private registry example:
+# [install.scopes]
+# "@myorg" = { url = "https://npm.internal.company.com/", token = "$NPM_TOKEN" }

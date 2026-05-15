@@ -1,0 +1,12 @@
+{
+    "_comment": "Rename to auth.json and add credentials. NEVER commit auth.json to version control.",
+    "http-basic": {
+        "packages.internal.company.com": {
+            "username": "YOUR_USERNAME",
+            "password": "YOUR_TOKEN"
+        }
+    },
+    "github-oauth": {
+        "github.com": "YOUR_GITHUB_TOKEN"
+    }
+}

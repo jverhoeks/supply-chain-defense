@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Gradle dependency verification configuration.
+  Gradle 6.2+ feature: verifies checksums and/or PGP signatures of all artifacts.
+
+  Generate initial file: ./gradlew --write-verification-metadata sha256,pgp
+  Verify on build: automatic (Gradle reads this file on every build)
+  Update after dep change: ./gradlew --write-verification-metadata sha256
+
+  Modes (set in build.gradle.kts via dependencyVerification block or CLI):
+    --dependency-verification=lenient  (log mismatches, don't fail)
+    --dependency-verification=strict   (fail on mismatch — use in CI)
+    --dependency-verification=off      (disable — only for debugging)
+-->
+<verification-metadata
+    xmlns="https://schema.gradle.org/dependency-verification"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+
+    <configuration>
+        <!-- Verify checksums for all components -->
+        <verify-metadata>true</verify-metadata>
+        <!-- Also verify PGP signatures (if available) -->
+        <verify-signatures>true</verify-signatures>
+        <!-- Trusted keys file (import public keys of trusted publishers) -->
+        <!-- Use: ./gradlew --export-keys to extract keys from cache -->
+    </configuration>
+
+    <!--
+    <components>
+        <component group="com.google.guava" name="guava" version="33.2.1-jre">
+            <artifact name="guava-33.2.1-jre.jar">
+                <sha256 value="2d4b68c55af8cf3e..."/>
+                <pgp value="KEYID"/>
+            </artifact>
+        </component>
+    </components>
+    -->
+</verification-metadata>

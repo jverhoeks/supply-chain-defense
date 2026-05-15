@@ -1,0 +1,35 @@
+# pnpm v11 workspace configuration
+# Build policy and supply chain settings live here — not in .npmrc.
+# Requires pnpm >= 11.0
+
+packages:
+  - "packages/*"
+  - "apps/*"
+
+# Minimum release age: 10080 minutes = 7 days.
+# This is on by default in pnpm v11 (default: 1440 = 1 day). Set explicitly for clarity.
+minimumReleaseAge: 10080
+
+# Build script policy (replaces v10's ignore-scripts=true).
+# allowBuilds is an explicit opt-in map: package → true|false.
+# An empty map means NO package is allowed to run build scripts.
+# Add entries only after reviewing the build script source.
+#
+# Example:
+#   allowBuilds:
+#     esbuild: true        # native binary fetcher — reviewed, safe
+#     "@swc/core": true    # native Rust compiler — reviewed, safe
+allowBuilds: {}
+
+# strictDepBuilds: true (default in v11) — treat unlisted packages as blocked (error).
+# Set to false to downgrade to a warning instead (not recommended).
+strictDepBuilds: true
+
+# Block exotic dependency protocols in transitive deps.
+blockExoticSubdeps: true
+
+# Strict peer dependency resolution.
+strictPeerDependencies: true
+
+# Do not auto-install peer dependencies.
+autoInstallPeers: false

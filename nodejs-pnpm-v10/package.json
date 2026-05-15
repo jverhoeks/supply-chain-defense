@@ -1,0 +1,15 @@
+{
+  "name": "supply-chain-test-pnpm-v10",
+  "version": "1.0.0",
+  "description": "Supply chain protection config for pnpm v10",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=10.16.0 <11.0.0"
+  },
+  "scripts": {
+    "audit": "pnpm audit --audit-level=moderate",
+    "verify": "pnpm install --frozen-lockfile && pnpm audit"
+  },
+  "dependencies": {}
+}

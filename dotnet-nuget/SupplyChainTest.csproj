@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Locked mode: dotnet restore fails if packages.lock.json is out of date.
+         Generate lock file: dotnet restore
+         CI enforcement: dotnet restore /p:RestoreLockedMode=true -->
+    <RestoreLockedMode>true</RestoreLockedMode>
+
+    <!-- NuGetAudit: treat package vulnerabilities as errors during restore (dotnet 8+) -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <!-- Fail on any severity; use "moderate", "high", or "critical" to raise the threshold -->
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+
+    <!-- Generate packages.lock.json and commit it to version control -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- With Central Package Management (Directory.Packages.props) enabled,
+         omit the Version attribute — it is declared centrally.
+         Without CPM: pin exact versions, no ranges. -->
+    <!-- <PackageReference Include="Newtonsoft.Json" /> -->
+  </ItemGroup>
+
+  <!--
+    Supply chain notes for NuGet:
+
+    1. Vulnerability scanning:
+       dotnet list package /p:vulnerable=true
+       dotnet list package /p:includeTransitive=true
+
+    2. SBOM generation:
+       dotnet tool install -g Microsoft.Sbom.DotNetTool
+       sbom-tool generate -b . -bc . -pn MyProject -pv 1.0.0 -ps MyOrg -nsb https://sbom.myorg.com
+
+    3. Locked mode (CI):
+       RestoreLockedMode=true fails if packages.lock.json needs updating.
+       Run: dotnet restore /p:RestoreLockedMode=true
+
+    4. Package source mapping:
+       Use nuget.config packageSourceMapping to restrict which packages
+       come from which registries (prevents dependency confusion attacks).
+
+    5. NuGet audit (dotnet 8+):
+       NuGetAudit=true automatically checks for known vulnerabilities during restore.
+       Set NuGetAuditLevel to control which severity levels fail the build.
+
+    6. Known attack vectors:
+       IL weaving: malicious NuGet packages inject code into .NET binaries at build time.
+       JIT hooking: intercepts method calls at runtime.
+       Mitigations: private proxy + NuGetAudit + SBOM analysis + static analysis for obfuscation.
+  -->
+
+</Project>

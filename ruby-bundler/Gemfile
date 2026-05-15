@@ -1,0 +1,42 @@
+# frozen_string_literal: true
+
+# Supply chain protection for Bundler (Ruby)
+
+source "https://rubygems.org"
+
+# For corporate environments: use a private gem server as the primary source.
+# source "https://gems.internal.company.com"
+
+# Pin to exact versions (no ~> or >= for production dependencies)
+gem "rails", "7.1.3"
+gem "puma", "6.4.2"
+
+group :development, :test do
+  # bundler-audit: vulnerability scanner for Gemfile.lock
+  # Run: bundle exec bundle-audit check --update
+  # Install: gem install bundler-audit
+  gem "bundler-audit", "~> 0.9"
+end
+
+# Supply chain notes for Bundler:
+#
+# 1. Checksums (Bundler 2.6+):
+#    Run: bundle lock --add-checksums
+#    This adds a CHECKSUMS section to Gemfile.lock with SHA256 hashes.
+#    Bundler verifies these on every install (fails on mismatch).
+#    Required: Bundler >= 2.6.0  (Ruby >= 3.3 ships with it)
+#
+# 2. Frozen installs (CI):
+#    bundle install --frozen       # fail if Gemfile.lock would change
+#    BUNDLE_FROZEN=true            # same via environment variable
+#    bundle config set deployment true  # same, persisted to ~/.bundle/config
+#
+# 3. Vulnerability scanning:
+#    bundle exec bundle-audit check --update
+#    Or: bundle exec bundle-audit update && bundle exec bundle-audit check
+#
+# 4. Ruby gems cannot execute postinstall scripts by design.
+#    Native extensions (C code) are compiled during install.
+#    Mitigations for native extensions:
+#    - Use pre-compiled platform-specific gems (e.g., rails-nokogiri)
+#    - Review the extension source before adding the gem

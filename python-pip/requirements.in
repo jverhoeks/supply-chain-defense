@@ -1,0 +1,6 @@
+# Input file for pip-compile --generate-hashes
+# Run: pip-compile --generate-hashes requirements.in -o requirements.txt
+# Then: pip install --require-hashes -r requirements.txt
+
+# Example dependencies (update to your actual ones):
+requests>=2.31.0

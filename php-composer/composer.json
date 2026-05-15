@@ -1,0 +1,23 @@
+{
+    "name": "example/supply-chain-test",
+    "description": "Supply chain protection test for Composer (PHP)",
+    "type": "project",
+    "require": {
+        "php": ">=8.3"
+    },
+    "require-dev": {},
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "symfony/runtime": true
+        },
+        "preferred-install": "dist",
+        "process-timeout": 300
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packagist.org"
+        }
+    ]
+}

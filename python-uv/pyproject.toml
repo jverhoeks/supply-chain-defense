@@ -1,0 +1,24 @@
+[project]
+name = "supply-chain-test-uv"
+version = "1.0.0"
+description = "Supply chain protection test for uv"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31.0",
+]
+
+# uv settings are in uv.toml (takes precedence over [tool.uv] here).
+# See uv.toml for: exclude-newer, require-hashes, only-binary.
+#
+# Key protections in uv.toml:
+#   exclude-newer = "P7D"          — blocks packages published in last 7 days
+#   pip.require-hashes = true      — verify SHA256 of every downloaded package
+#   pip.only-binary = [":all:"]    — never run setup.py (blocks install-time RCE)
+#
+# CI usage:
+#   uv sync --frozen               — enforce lockfile, no network updates
+#   uv lock --check                — verify lockfile is up to date
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

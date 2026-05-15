@@ -1,0 +1,18 @@
+[package]
+name = "supply-chain-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Pin exact versions (no ^ or ~) for maximum reproducibility in binaries
+# For libraries, use compatible ranges to allow security patches upstream
+
+[dev-dependencies]
+
+# Workspace security policies (for workspaces, use root Cargo.toml)
+# [workspace.metadata.cargo-deny]
+# ...
+
+# IMPORTANT: Always commit Cargo.lock for binary crates.
+# For library crates, Cargo.lock is gitignored by default but committing
+# it helps catch supply chain changes in CI.

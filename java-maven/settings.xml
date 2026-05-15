@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~/.m2/settings.xml — Maven user-level settings
+  This file contains credentials and repository configuration.
+  Never commit this to version control (it may contain secrets).
+  Provide it to CI via secret injection.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <!-- Mirror: route all Maven Central requests through your private proxy.
+         This gives you:
+         - Control over which artifacts can be downloaded
+         - Vulnerability scanning before artifacts reach developers
+         - Air-gap capability
+         - Audit logging of all dependency downloads -->
+    <mirrors>
+        <mirror>
+            <id>internal-mirror</id>
+            <name>Internal Maven Proxy</name>
+            <!-- Route ALL external repos through internal proxy -->
+            <mirrorOf>*</mirrorOf>
+            <url>https://nexus.internal.company.com/repository/maven-public/</url>
+            <!-- Fail the build on checksum mismatch — default is 'warn', which
+                 silently continues with a tampered artifact. -->
+            <checksumPolicy>fail</checksumPolicy>
+            <!-- Never re-check for updated release artifacts. Releases are
+                 immutable; re-checking opens a SNAPSHOT-style poisoning window. -->
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </mirror>
+    </mirrors>
+
+    <!-- Server credentials for private repositories -->
+    <!-- In CI: inject via environment variables, not hardcoded here -->
+    <servers>
+        <server>
+            <id>internal-mirror</id>
+            <username>${env.NEXUS_USERNAME}</username>
+            <password>${env.NEXUS_PASSWORD}</password>
+        </server>
+    </servers>
+
+    <profiles>
+        <profile>
+            <id>security</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- Checksum policy: fail on checksum mismatch -->
+                <!-- Note: Maven validates checksums by default; this is explicit -->
+            </properties>
+        </profile>
+    </profiles>
+</settings>

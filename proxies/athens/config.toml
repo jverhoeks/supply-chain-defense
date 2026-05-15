@@ -1,0 +1,37 @@
+# Athens Go module proxy configuration
+# Docs: https://docs.gomods.io/configuration/
+#
+# Athens does NOT have native server-side release-age enforcement.
+# Age protection for Go is enforced at the CLIENT side via:
+#   GOPROXY="https://localhost:3000,off"   (no internet fallback)
+#   GOFLAGS="-mod=readonly"
+#   go mod verify
+#
+# Athens provides:
+#   - Caching / air-gap: modules fetched once and served forever from local store
+#   - Immutable cache: a cached module version cannot be replaced (tamper protection)
+#   - Exclusion list: block specific modules or versions from being fetched
+#   - Offline mode: set GoGetWorker=false to serve only cached modules
+
+Port = ":3000"
+GoEnv = "development"
+GoGetWorker = true
+ProtocolWorkers = 30
+LogLevel = "warning"
+StorageType = "disk"
+
+[Storage]
+  [Storage.Disk]
+    RootPath = "/var/lib/athens"
+
+[Proxy]
+  # Upstream proxy (go.sum DB bypass handled by client GONOSUMDB/GOPRIVATE).
+  # Set to "off" for fully air-gapped operation.
+  OlympicCode = false
+  StashTimeout = "5m"
+
+# Block specific modules from being fetched.
+# Uncomment and populate to deny known-bad modules.
+# [GlobalEndpoint]
+# [NoSumPatterns]
+# patterns = ["github.com/known-malicious/*"]

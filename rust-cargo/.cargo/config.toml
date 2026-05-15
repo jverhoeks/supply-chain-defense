@@ -1,0 +1,42 @@
+# Cargo configuration for supply chain protection
+# Project-level: .cargo/config.toml
+# User-level:    ~/.cargo/config.toml
+# System-level:  /etc/cargo/config.toml
+
+[net]
+# Offline mode: prevent all network access during builds.
+# Use in CI after `cargo fetch` has populated the cache.
+# offline = true  # Uncomment for air-gapped / cache-only builds
+
+# Retry on network failures (default: 2)
+retry = 3
+
+[source]
+# Replace the default crates.io registry with a private mirror.
+# This gates all downloads through a controlled proxy.
+# Uncomment and configure for corporate environments.
+#
+# [source.crates-io]
+# replace-with = "internal-mirror"
+#
+# [source.internal-mirror]
+# registry = "https://crates.internal.company.com/crates-io/index"
+
+[build]
+# Always use --locked in CI via: cargo build --locked
+# This fails the build if Cargo.lock would need to be updated.
+# Set as environment variable in CI: CARGO_NET_OFFLINE=true
+
+[cargo-new]
+# Default edition for new projects
+vcs = "git"
+
+# Note on install scripts:
+# Cargo's equivalent of npm postinstall is build.rs (build scripts).
+# There is no global flag to disable build.rs execution.
+# build.rs runs with full network/filesystem access during compilation.
+# Mitigations:
+#   1. cargo deny: ban crates with known-bad build scripts
+#   2. cargo vet: require audits for each build dependency
+#   3. Sandbox builds (e.g., in Docker with --network=none)
+#   4. Review build.rs in each dependency before adding it

@@ -1,0 +1,20 @@
+{
+  "name": "supply-chain-test-yarn",
+  "version": "1.0.0",
+  "description": "Supply chain protection test for Yarn Berry",
+  "private": true,
+  "packageManager": "yarn@4.10.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "audit": "yarn npm audit",
+    "verify": "yarn install --immutable && yarn npm audit"
+  },
+  "dependenciesMeta": {
+    "esbuild": {
+      "built": true
+    }
+  },
+  "dependencies": {}
+}

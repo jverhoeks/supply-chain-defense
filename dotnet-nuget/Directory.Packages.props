@@ -1,0 +1,35 @@
+<Project>
+  <PropertyGroup>
+    <!--
+      Central Package Management (CPM) — requires .NET 7+ SDK.
+      When enabled, ALL PackageReference elements in every .csproj in this
+      directory tree must omit the Version attribute. Versions are declared
+      here once and applied repo-wide.
+
+      Why this matters for supply chain:
+        - No per-project version ranges (no ">=1.0" drifting to a malicious 2.0)
+        - One place to apply security patches across the whole repo
+        - `dotnet restore` fails if a csproj tries to override a version
+        - Pairs with RestoreLockedMode=true for full lockfile enforcement
+    -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
+    <!--
+      Prevent projects from overriding centrally managed versions.
+      Set to false only if a project legitimately needs a different version
+      (document the reason inline).
+    -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Declare all package versions here. In .csproj files, use:
+        <PackageReference Include="Newtonsoft.Json" />   (no Version attribute)
+
+      Pin exact versions — no ranges, no wildcards.
+    -->
+    <!-- <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" /> -->
+    <!-- <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" /> -->
+  </ItemGroup>
+</Project>

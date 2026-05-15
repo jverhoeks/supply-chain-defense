@@ -1,0 +1,12 @@
+# uv.toml - project-level uv configuration
+# Alternative to pyproject.toml [tool.uv] section.
+# Takes precedence over pyproject.toml for uv settings.
+# Global user config: ~/.config/uv/uv.toml
+
+# Exclude packages newer than 7 days (supply chain attack mitigation)
+exclude-newer = "P7D"
+
+# Require hash verification for all packages
+[pip]
+require-hashes = true
+only-binary = [":all:"]

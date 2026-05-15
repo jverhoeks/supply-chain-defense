@@ -1,0 +1,18 @@
+# cargo-vet project-local audit log
+# This file records which crates this project's team has personally reviewed.
+# Remote audit sets (Mozilla, Google, Embark) are imported via config.toml and
+# cover most common crates. Add entries here for crates not covered by imports.
+#
+# Add an entry: cargo vet certify <crate> <version> safe-to-deploy
+# Review a diff: cargo vet diff <crate> <old-version> <new-version>
+# Criteria:
+#   safe-to-deploy  — suitable for production; no malicious code, no unsafe surprises
+#   safe-to-run     — acceptable for dev/build tooling; lower bar than safe-to-deploy
+
+[[audits]]
+# Example (uncomment and fill in after reviewing):
+# who = "jane@example.com"
+# criteria = "safe-to-deploy"
+# crate = "my-internal-crate"
+# version = "1.0.0"
+# notes = "Reviewed source at commit abc123. No build.rs, no network access."

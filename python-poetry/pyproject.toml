@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "supply-chain-test-poetry"
+version = "1.0.0"
+description = "Supply chain protection test for Poetry"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# Pin to exact version (no ^ or ~) for reproducibility
+requests = "2.32.3"
+
+[tool.poetry.group.dev.dependencies]
+# Vulnerability scanning (poetry has no native audit command)
+pip-audit = "^2.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Poetry supply chain notes:
+#
+# 1. Lock file:
+#    poetry.lock is auto-generated and includes hashes for every package.
+#    Always commit poetry.lock to version control.
+#    Install from lockfile: poetry install --no-update
+#    In CI: set POETRY_VIRTUALENVS_CREATE=false and use:
+#      poetry install --no-root --sync --no-update
+#
+# 2. Vulnerability scanning (no native "poetry audit"):
+#    Use pip-audit: poetry run pip-audit
+#    Or: poetry export -f requirements.txt | pip-audit -r /dev/stdin
+#    Or use Socket.dev / Snyk integration.
+#
+# 3. Script execution:
+#    Poetry itself does not run postinstall scripts.
+#    However, packages with native extensions (e.g., cryptography, pydantic) will
+#    trigger build backend compilation. Use --only-binary via pip.conf if concerned.
+#
+# 4. Registry:
+#    Default: PyPI. Add private source below.
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+# For corporate environments, replace with internal mirror:
+# url = "https://pypi.internal.company.com/simple/"

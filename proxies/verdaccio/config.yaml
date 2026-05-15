@@ -1,0 +1,41 @@
+storage: /verdaccio/storage
+# Tell Verdaccio to look for plugins in the config directory (where package.json lives).
+# Verdaccio 6 expects the directory that *contains* node_modules, not node_modules itself.
+plugins: /verdaccio/conf
+auth:
+  htpasswd:
+    file: /verdaccio/conf/htpasswd
+    max_users: -1
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    maxage: 10m
+
+packages:
+  "@*/*":
+    access: $all
+    publish: $all
+    proxy: npmjs
+  "**":
+    access: $all
+    publish: $all
+    proxy: npmjs
+
+# Server-side minimum release age enforcement.
+# @verdaccio/package-filter hides any package version published less than minAgeDays ago.
+# This is defence-in-depth on top of the client-side min-release-age / minimumReleaseAge
+# settings — even a misconfigured client cannot install a package that is too new.
+#
+# Allow list: exempt internal scopes or known-safe packages from the age gate.
+#   allow:
+#     - "@myorg/**"
+filters:
+  "@verdaccio/package-filter":
+    minAgeDays: 7
+
+server:
+  keepAliveTimeout: 60
+
+logs:
+  - { type: stdout, format: pretty, level: warn }

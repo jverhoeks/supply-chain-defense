@@ -1,0 +1,23 @@
+# cargo-vet configuration
+# Install: cargo install cargo-vet
+# Initialize: cargo vet init
+# Check: cargo vet
+# Docs: https://mozilla.github.io/cargo-vet/
+
+# Import audit data from trusted organizations.
+# This bootstraps your audit database from Google and Mozilla's vetted sets,
+# significantly reducing the manual review burden.
+imports = [
+    # Mozilla's curated audit set
+    { name = "mozilla", url = "https://raw.githubusercontent.com/mozilla/cargo-vet/main/supply-chain/audits.toml" },
+    # Google's curated audit set
+    { name = "google", url = "https://raw.githubusercontent.com/google/cargo-vet/main/supply-chain/audits.toml" },
+    # Embark Studios
+    { name = "embark", url = "https://raw.githubusercontent.com/EmbarkStudios/cargo-vet/main/supply-chain/audits.toml" },
+]
+
+# Policy: what audits are required for each usage type
+[policy]
+# Require "safe-to-deploy" audit for production dependencies
+# Require "safe-to-run" audit for dev/build dependencies
+audit-as-crates-io = true

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>supply-chain-test</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Pin exact versions — never use ranges like [1.0,2.0) -->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- OWASP Dependency-Check: scan against NVD/GHSA vulnerability databases -->
+            <!-- Run: mvn dependency-check:check -->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>9.2.0</version>
+                <configuration>
+                    <!-- Fail build on CVSS score >= 7.0 (adjust to policy) -->
+                    <failBuildOnCVSS>7.0</failBuildOnCVSS>
+                    <!-- Include dev/test dependencies in scan -->
+                    <skipTestScope>false</skipTestScope>
+                    <!-- Output formats -->
+                    <formats>
+                        <format>HTML</format>
+                        <format>JSON</format>
+                    </formats>
+                    <!-- Suppress false positives (document each suppression) -->
+                    <!-- <suppressionFiles>dependency-check-suppression.xml</suppressionFiles> -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Maven Enforcer: policy enforcement during build -->
+            <!-- Prevents class shadowing attacks and enforces versions -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.4.1</version>
+                <!-- banDuplicateClasses is from extra-enforcer-rules, not the core plugin -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>extra-enforcer-rules</artifactId>
+                        <version>1.8.0</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>enforce-supply-chain</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <!-- Fail on duplicate classes (class hijack mitigation) -->
+                                <banDuplicateClasses>
+                                    <ignoreClasses>
+                                        <!-- Known safe duplicates (add only after review) -->
+                                        <!-- <ignoreClass>org.slf4j.impl.*</ignoreClass> -->
+                                    </ignoreClasses>
+                                    <findAllDuplicates>true</findAllDuplicates>
+                                </banDuplicateClasses>
+                                <!-- Enforce Maven version -->
+                                <requireMavenVersion>
+                                    <version>[3.8.0,)</version>
+                                </requireMavenVersion>
+                                <!-- Enforce Java version -->
+                                <requireJavaVersion>
+                                    <version>[21,)</version>
+                                </requireJavaVersion>
+                                <!-- Ban vulnerable transitive dependencies -->
+                                <!-- <bannedDependencies> -->
+                                <!--     <excludes> -->
+                                <!--         <exclude>log4j:log4j:[,1.2.17]</exclude> -->
+                                <!--     </excludes> -->
+                                <!-- </bannedDependencies> -->
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- CycloneDX SBOM generation -->
+            <!-- Run: mvn cyclonedx:makeAggregateBom -->
+            <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+                <version>2.8.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>makeAggregateBom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputFormat>json</outputFormat>
+                    <outputName>bom</outputName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- Repository configuration: prefer private proxy over direct Maven Central -->
+    <!-- Configure credentials in ~/.m2/settings.xml, not here -->
+    <!--
+    <repositories>
+        <repository>
+            <id>internal</id>
+            <url>https://nexus.internal.company.com/repository/maven-public/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>internal</id>
+            <url>https://nexus.internal.company.com/repository/maven-public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+    -->
+</project>

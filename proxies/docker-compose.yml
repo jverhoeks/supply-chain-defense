@@ -1,0 +1,102 @@
+services:
+
+  # ── npm / pnpm / yarn / bun ───────────────────────────────────────────────
+  # Port 4873. Server-side minAgeDays: 7 via @verdaccio/package-filter.
+  # This is the ONLY open source proxy with native release-age enforcement.
+  verdaccio:
+    build: ./verdaccio
+    ports:
+      - "4873:4873"
+    volumes:
+      - ./verdaccio/config.yaml:/verdaccio/conf/config.yaml:ro
+    environment:
+      VERDACCIO_PORT: 4873
+    restart: unless-stopped
+
+  # ── Python (pip / uv) ────────────────────────────────────────────────────
+  # Port 3141. Caches PyPI packages locally.
+  # Age gate: client-side via uv's exclude-newer = "P7D"
+  devpi:
+    image: ghcr.io/devpi/devpi:latest
+    ports:
+      - "3141:3141"
+    volumes:
+      - devpi-data:/devpi
+    command: >
+      devpi-server
+      --host 0.0.0.0
+      --port 3141
+      --serverdir /devpi
+    restart: unless-stopped
+
+  # ── Go modules ───────────────────────────────────────────────────────────
+  # Port 3000. Immutable module cache.
+  # Age gate: client-side via GOPROXY=http://localhost:3000,off + go mod verify
+  athens:
+    image: gomods/athens:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./athens/config.toml:/config/config.toml:ro
+      - athens-storage:/var/lib/athens
+    environment:
+      ATHENS_DISK_STORAGE_ROOT: /var/lib/athens
+      ATHENS_STORAGE_TYPE: disk
+      ATHENS_LOG_LEVEL: warning
+    restart: unless-stopped
+
+  # ── Maven / Gradle ───────────────────────────────────────────────────────
+  # Port 8080. Lightweight Maven proxy (~20MB RAM vs Nexus 1GB+).
+  # Age gate: no proxy-side support; checksumPolicy=fail in settings.xml is the control.
+  reposilite:
+    image: dzikoysk/reposilite:3
+    ports:
+      - "8080:8080"
+    volumes:
+      - reposilite-data:/app/data
+      - ./reposilite/configuration.shared.groovy:/app/data/configuration.shared.groovy:ro
+    environment:
+      REPOSILITE_OPTS: "--token admin:admin_secret"
+    restart: unless-stopped
+
+  # ── NuGet (.NET) ─────────────────────────────────────────────────────────
+  # Port 5555. Read-through cache from nuget.org.
+  # Age gate: no proxy-side support; RestoreLockedMode + NuGetAudit at client.
+  # Config via env vars: mounting appsettings.json causes a NullReferenceException
+  # in Startup.Configure on all tested versions when running on ARM64.
+  bagetter:
+    image: bagetter/bagetter:1.4.8
+    ports:
+      - "5555:8080"
+    volumes:
+      - bagetter-data:/var/bagetter
+    environment:
+      ApiKey: "change-me-before-use"
+      Database__Type: "Sqlite"
+      Database__ConnectionString: "Data Source=/var/bagetter/bagetter.db"
+      Storage__Type: "FileSystem"
+      Storage__Path: "/var/bagetter/packages"
+      Search__Type: "Database"
+      Mirror__Enabled: "true"
+      Mirror__PackageSource: "https://api.nuget.org/v3/index.json"
+    restart: unless-stopped
+
+  # ── All ecosystems (npm, PyPI, Go, Maven, NuGet) ─────────────────────────
+  # Port 8081. Single proxy replacing all five specialized proxies above.
+  # Run: bash nexus/setup.sh  (once, after docker compose up -d)
+  # RAM: ~1.5 GB at rest — heavier than all five specialized proxies combined.
+  nexus:
+    image: sonatype/nexus3:latest
+    ports:
+      - "8081:8081"
+    volumes:
+      - nexus-data:/nexus-data
+    restart: unless-stopped
+
+volumes:
+  verdaccio-storage:
+  devpi-data:
+  athens-storage:
+  reposilite-data:
+  bagetter-data:
+  nexus-data:

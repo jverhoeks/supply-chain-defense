@@ -1,0 +1,16 @@
+{
+  "name": "supply-chain-test-npm",
+  "version": "1.0.0",
+  "description": "Supply chain protection test for npm",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=11.10.0"
+  },
+  "scripts": {
+    "audit": "npm audit --audit-level=moderate",
+    "audit:fix": "npm audit fix",
+    "verify": "npm ci && npm audit"
+  },
+  "dependencies": {}
+}
