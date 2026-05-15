@@ -145,10 +145,13 @@ If you are running Nexus, combine these age-gate and script-blocking configs wit
 # .npmrc
 min-release-age=7       # days - npm uses DAYS, not minutes
 ignore-scripts=true
+allow-git=false         # requires npm >= 11.10; blocks git dependency execution
 registry=https://registry.npmjs.org/
 ```
 
 > **Unit gotcha**: npm uses **days**. pnpm and yarn use **minutes** (10080 = 7 days). Easy to mix up.
+
+> **`ignore-scripts` does not block git dependencies.** npm calls the system `git` binary directly to fetch git-hosted packages — this happens outside the lifecycle hook system, so `ignore-scripts=true` has no effect on it. Worse, a malicious package can include its own `.npmrc` that overrides which binary npm treats as `git`, turning a git dependency install into arbitrary code execution. `allow-git=false` shuts this off entirely by blocking all git-protocol dependencies. Requires npm >= 11.10. See [I thought ignore-scripts made npm installs safe. It doesn't.](https://thinkingthroughcode.medium.com/i-thought-ignore-scripts-made-npm-installs-safe-it-doesnt-f409b852e7c5)
 
 CI command: `npm ci`
 
@@ -660,6 +663,9 @@ A common assumption is that "Maven plugins run code, so Maven is as dangerous as
 **Composer scripts run on install exactly like npm postinstall — but fewer teams know this.**
 `composer install` executes `post-install-cmd` and `pre-install-cmd` scripts from any package's `composer.json`. This is the same attack surface as npm's `postinstall` hook. Always run `composer install --no-scripts` in CI. Unlike npm, there is no persistent config key to disable scripts globally — it must be a flag on every invocation.
 
+**`ignore-scripts=true` does not block git dependencies.**
+npm calls the system `git` binary to fetch git-hosted packages, bypassing the lifecycle hook system entirely. A malicious package can include its own `.npmrc` overriding which binary npm treats as `git` — turning a git dependency install into arbitrary code execution even with `ignore-scripts=true`. The fix: add `allow-git=false` to `.npmrc` (requires npm >= 11.10). Safety flags only protect the layer they actually control. ([source](https://thinkingthroughcode.medium.com/i-thought-ignore-scripts-made-npm-installs-safe-it-doesnt-f409b852e7c5))
+
 **pnpm v11 moved build policy to `pnpm-workspace.yaml`.**
 Settings in `.npmrc` are silently ignored. Run `pnpm approve-builds` to populate the allowlist interactively. If you upgraded from v10 and kept `allowBuilds` in `.npmrc`, your build policy is doing nothing.
 
@@ -703,3 +709,9 @@ Nexus, Verdaccio, and every other proxy cache and air-gap packages. None of them
 - **Lockfile integrity in CI**: Use `npm ci`, `pnpm install --frozen-lockfile`, `uv sync --frozen`, `cargo build --locked`, `dotnet restore /p:RestoreLockedMode=true`. Never use the plain install command in a pipeline.
 - **Vulnerability scanning**: `npm audit`, `pip-audit`, `cargo audit`, `govulncheck`, `mvn dependency-check:check`.
 - **SLSA and Sigstore**: Provenance attestation for verifying that a package was built from the claimed source. See `cross-ecosystem/slsa-sigstore.md`.
+
+---
+
+## References
+
+- [I thought ignore-scripts made npm installs safe. It doesn't.](https://thinkingthroughcode.medium.com/i-thought-ignore-scripts-made-npm-installs-safe-it-doesnt-f409b852e7c5) — The `allow-git=false` bypass and why safety flags only protect the layer they actually control.
