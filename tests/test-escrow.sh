@@ -13,6 +13,8 @@ PASS=0; FAIL=0
 ESCROW_PID=""
 BIN=""
 CFG=""
+TMPDIR_NPM=""
+ESCROW_LOG=""
 
 ok()  { echo "  PASS $1"; PASS=$((PASS+1)); }
 fail(){ echo "  FAIL $1"; FAIL=$((FAIL+1)); }
@@ -22,6 +24,8 @@ cleanup() {
     [ -n "$ESCROW_PID" ] && wait "$ESCROW_PID" 2>/dev/null || true
     [ -n "$BIN" ] && [[ "$BIN" == /tmp/* ]] && rm -f "$BIN"
     [ -n "$CFG" ] && rm -f "$CFG"
+    [ -n "$TMPDIR_NPM" ] && rm -rf "$TMPDIR_NPM"
+    [ -n "$ESCROW_LOG" ] && rm -f "$ESCROW_LOG"
 }
 trap cleanup EXIT
 
@@ -100,12 +104,14 @@ $extra
   enabled = false
 EOF
 
-    "$BIN" "$CFG" >/dev/null 2>&1 &
+    ESCROW_LOG="/tmp/escrow-sc-log-$$.txt"
+    "$BIN" "$CFG" >"$ESCROW_LOG" 2>&1 &
     ESCROW_PID=$!
     # Wait up to 6s for healthz
     for i in $(seq 1 20); do
         if ! kill -0 "$ESCROW_PID" 2>/dev/null; then
-            echo "ERROR: escrow exited before becoming healthy" >&2
+            echo "ERROR: escrow exited early. Last output:" >&2
+            cat "$ESCROW_LOG" >&2
             exit 1
         fi
         curl -sf "http://127.0.0.1:$PORT/healthz" >/dev/null 2>&1 && return 0
@@ -126,7 +132,7 @@ echo "=== npm (block-all) ==="
 
 # npm: lodash manifest should have empty versions
 resp=$(curl -sf "http://127.0.0.1:$PORT/lodash" || echo "{}")
-cnt=$(echo "$resp" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('versions',{})))" 2>/dev/null || echo "-1")
+cnt=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('versions',{})))" <<< "$resp" 2>/dev/null || echo "-1")
 if [ "$cnt" -eq 0 ]; then
     ok "npm: lodash versions blocked by age gate"
 else
@@ -154,12 +160,13 @@ else
 fi
 rm -f /tmp/npm-block-result-$$
 rm -rf "$TMPDIR_NPM"
+TMPDIR_NPM=""
 
 echo ""
 echo "=== PyPI (block-all) ==="
 
 resp=$(curl -sf "http://127.0.0.1:$PORT/pypi/requests/json" || echo "{}")
-cnt=$(echo "$resp" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('releases',{})))" 2>/dev/null || echo "-1")
+cnt=$(python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('releases',{})))" <<< "$resp" 2>/dev/null || echo "-1")
 if [ "$cnt" -lt 10 ]; then
     ok "pypi: requests releases blocked by age gate (only $cnt remaining)"
 else
@@ -204,6 +211,7 @@ else
 fi
 rm -f /tmp/npm-allow-result-$$
 rm -rf "$TMPDIR_NPM"
+TMPDIR_NPM=""
 
 echo ""
 echo "=== PyPI (allow-all) ==="
