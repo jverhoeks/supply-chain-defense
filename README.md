@@ -50,10 +50,10 @@ Not every ecosystem supports the same controls. This table shows the ceiling —
 
 | Ecosystem | Runs code on install | Release-age gate | Script blocking | Proxy / mirror | Integrity check |
 |-----------|:-------------------:|:----------------:|:---------------:|:--------------:|:---------------:|
-| npm / pnpm / yarn / bun | ✓ postinstall | ✓ client-side<br>**✓ server-side (Verdaccio)** | ✓ | ✓ | ✓ |
-| Python (pip / uv) | ✓ sdist only | ✓ uv only, client-side | ✓ `only-binary` | ✓ | ✓ |
+| npm / pnpm / yarn / bun | ✓ postinstall | ✓ client-side<br>**✓ server-side (Verdaccio, escrow)** | ✓ | ✓ | ✓ |
+| Python (pip / uv) | ✓ sdist only | ✓ uv only, client-side<br>**✓ server-side (escrow)** | ✓ `only-binary` | ✓ | ✓ |
 | PHP / Composer | ✓ post-install-cmd | — | ✓ `--no-scripts` | Partial (Satis/Nexus) | ✓ |
-| Go | — | — | n/a | ✓ | ✓ (GOSUMDB) |
+| Go | — | **✓ server-side (escrow)** | n/a | ✓ | ✓ (GOSUMDB) |
 | Maven / Gradle | — (build only¹) | — | n/a | ✓ | ✓ |
 | NuGet | — (build only²) | — | n/a | ✓ | ✓ |
 | Rust / Cargo | ✓ build.rs | — | — (no off switch) | — (no OSS proxy) | ✓ cargo-deny + vet |
@@ -68,7 +68,7 @@ Not every ecosystem supports the same controls. This table shows the ceiling —
 
 **PHP/Composer has no native age gate.** Use a private Packagist mirror (Satis or Nexus) for org-wide enforcement.
 
-**Verdaccio is the only open-source proxy with server-side age enforcement.** Every other proxy enforces the age gate at the client only.
+**Verdaccio and [escrow](https://github.com/jverhoeks/escrow) are the only open-source proxies with server-side age enforcement.** escrow covers npm, PyPI, and Go modules in a single binary. Every other proxy enforces the age gate at the client only.
 
 ---
 
@@ -502,6 +502,7 @@ Each proxy is a drop-in registry replacement for one ecosystem. Verdaccio is the
 
 | Proxy | Ecosystem | Port | Age enforcement |
 |-------|-----------|------|-----------------|
+| [escrow](https://github.com/jverhoeks/escrow) | npm / PyPI / Go modules | 8888 | **Server-side** (`min_days: 7`) |
 | Verdaccio | npm / pnpm / yarn / bun | 4873 | **Server-side** (`minAgeDays: 7`) |
 | devpi | pip / uv | 3141 | Client-side only |
 | Athens | Go modules | 3000 | Client-side only |
@@ -556,6 +557,59 @@ export GOPROXY="http://localhost:3000,off"
 ```
 
 Do not add a second index as a fallback. Additional indexes are a dependency confusion risk: the package manager picks the highest version across all sources, so an attacker can register a public package with a higher version than your internal one.
+
+### escrow — npm, PyPI, and Go in a single binary
+
+[escrow](https://github.com/jverhoeks/escrow) is a purpose-built supply-chain proxy that enforces age gates, OSV vulnerability checks, and publisher-account-age policy server-side — blocking packages before they reach the package manager. It replaces three separate proxies (Verdaccio, devpi, Athens) with one binary and adds server-side age enforcement to PyPI and Go, which have no equivalent in the single-proxy stack.
+
+```bash
+# Docker
+docker run -p 8888:8888 ghcr.io/jverhoeks/escrow:latest
+
+# Build from source
+cd /path/to/escrow && go build -o escrow ./cmd/escrow && ./escrow
+```
+
+Policy in `sentinel.toml`:
+```toml
+[policy.age]
+  min_days = 7     # block packages published fewer than 7 days ago
+  action   = "block"
+```
+
+Point each tool at escrow (default port 8888):
+
+**npm / pnpm / bun** — `.npmrc`:
+```ini
+registry=http://localhost:8888/
+```
+
+**uv / pip** — `uv.toml`:
+```toml
+[pip]
+index-url = "http://localhost:8888/pypi/simple/"
+```
+
+**Go**:
+```bash
+export GOPROXY="http://localhost:8888/go,off"
+```
+
+Test results (2026-05-16, block-all and allow-all modes, 7/7 passed):
+```
+npm  block-all:  lodash manifest versions blocked           PASS
+npm  block-all:  npm install blocked                        PASS
+PyPI block-all:  requests releases filtered (163 → 3)       PASS
+Go   block-all:  module blocked (403)                       PASS
+npm  allow-all:  once installed via escrow                  PASS
+PyPI allow-all:  163 releases proxied through               PASS
+Go   allow-all:  module proxied successfully                PASS
+```
+
+```bash
+bash tests/test-escrow.sh
+# Auto-discovers ../2026-05-16-escrow or set ESCROW_DIR=/path/to/escrow
+```
 
 ### Testing proxy isolation
 
@@ -632,6 +686,15 @@ Asserts `dotnet restore` works, locked mode passes, Central Package Management i
 ```bash
 bash tests/test-dotnet.sh
 # Requires: dotnet
+```
+
+### Test 8: escrow proxy integration (npm, PyPI, Go)
+
+Builds escrow from source, starts it in block-all mode (age = 99999 days), asserts npm manifests are filtered to zero versions, PyPI releases are pruned, and Go modules return 403. Then restarts with no policy and asserts all three ecosystems proxy through successfully.
+
+```bash
+bash tests/test-escrow.sh
+# Auto-discovers ../2026-05-16-escrow or set ESCROW_DIR=/path/to/escrow
 ```
 
 ---
